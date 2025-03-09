@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Тест скорости печати</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            text-align: center; 
+            margin: 50px; 
+            background: #121212;
+            color: white;
+        }
+        #text-container { 
+            font-size: 24px; 
+            max-width: 700px; 
+            margin: 20px auto; 
+            text-align: left; 
+            background: rgba(255, 255, 255, 0.1); 
+            padding: 20px; 
+            border-radius: 10px; 
+            box-shadow: 0px 4px 8px rgba(255, 255, 255, 0.2);
+            color: #f5f5f5;
+            overflow-y: hidden;
+            height: 100px;
+        }
+        .word { margin-right: 5px; display: inline-block; }
+        .correct { color: #4CAF50; }
+        .incorrect { color: #FF5252; }
+        .active { text-decoration: underline; background: rgba(255, 255, 0, 0.3); }
+        #input { 
+            font-size: 20px; 
+            width: 80%; 
+            padding: 10px; 
+            margin-top: 20px; 
+            border: 2px solid #fff; 
+            border-radius: 5px;
+            background: #222;
+            color: white;
+        }
+        #info, #history { 
+            font-size: 18px; 
+            margin-top: 20px; 
+            background: rgba(255, 255, 255, 0.1); 
+            padding: 10px; 
+            border-radius: 10px;
+            display: inline-block;
+            box-shadow: 0px 2px 6px rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+        #restart {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background: #008CBA;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <h1>Тест скорости печати</h1>
+    <div id="text-container"></div>
+    <input type="text" id="input" autofocus>
+    <div id="info">
+        ⏳ Время: <span id="time">60</span> сек |  
+        ⚡ WPM: <span id="wpm">0</span> |  
+        ❌ Ошибки: <span id="errors">0</span>
+    </div>
+    <button id="restart">Начать заново</button>
+    <h2>История попыток</h2>
+    <div id="history"></div>
+    <script>
+        const words = ["космос", "звезды", "галактика", "комета", "телескоп", "астронавт", "орбита", "невесомость", "спутник", "черная дыра"];
+        let currentWords = [];
+        let index = 0;
+        let correctCount = 0;
+        let errorCount = 0;
+        let timeLeft = 60;
+        let timer;
+
+        function generateWords() {
+            currentWords = Array.from({ length: 20 }, () => words[Math.floor(Math.random() * words.length)]);
+            updateTextContainer();
+        }
+
+        function updateTextContainer() {
+            document.getElementById("text-container").innerHTML = currentWords.slice(index).map((word, i) => 
+                `<span class='word ${i === 0 ? "active" : ""}'>${word}</span>`).join(" ");
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                document.getElementById("time").innerText = timeLeft;
+                if (timeLeft <= 0) {
+                    clearInterval(timer);
+                    saveResult();
+                }
+            }, 1000);
+        }
+
+        function saveResult() {
+            let history = document.getElementById("history");
+            history.innerHTML += `<p>Скорость: ${correctCount} WPM, Ошибки: ${errorCount}</p>`;
+        }
+
+        document.getElementById("input").addEventListener("input", function() {
+            let inputWord = this.value.trim();
+            let activeWord = document.querySelector(".active");
+            
+            if (inputWord === currentWords[index]) {
+                index++;
+                correctCount++;
+                document.getElementById("wpm").innerText = correctCount;
+                updateTextContainer();
+                this.value = "";
+            } else if (!currentWords[index].startsWith(inputWord)) {
+                activeWord.classList.add("incorrect");
+                errorCount++;
+                document.getElementById("errors").innerText = errorCount;
+            } else {
+                activeWord.classList.remove("incorrect");
+            }
+        });
+
+        document.getElementById("restart").addEventListener("click", function() {
+            clearInterval(timer);
+            correctCount = 0;
+            errorCount = 0;
+            timeLeft = 60;
+            index = 0;
+            document.getElementById("wpm").innerText = "0";
+            document.getElementById("errors").innerText = "0";
+            document.getElementById("time").innerText = "60";
+            document.getElementById("input").value = "";
+            generateWords();
+            startTimer();
+        });
+
+        generateWords();
+        startTimer();
+    </script>
+</body>
+</html>
